@@ -21,9 +21,14 @@ int main(int argc, char * argv[])
 	MKNK = fopen("mknk.txt", "w");
 	if (valjastus())
 		return 1;
-	if (mccluskey(MDNK, MKNK))
+	int tulemus = mccluskey(MDNK, MKNK);
+	if (tulemus == 2)
 	{
-		return 1;
+		return 1;	// MDNK LOOMINE EBA6NNESTUS
+	}
+	if (tulemus == 3)
+	{
+		return 2;	// MKNK LOOMINE EBA6NNESTUS
 	}
 	fclose(MDNK);
 	fclose(MKNK);

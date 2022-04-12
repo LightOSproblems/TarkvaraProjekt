@@ -347,7 +347,7 @@ int nelikmassiiviteises(int a, int b, int c, int d, int e[][8], int pikkus)	// k
 int mccluskey(FILE * MDNK, FILE * MKNK)
 {
 	int indeks0[] = {0}, indeks1[] = {1, 2, 4, 8}, indeks2[] = {3, 5, 6, 9, 10, 12}, indeks3[] = {7, 11, 13, 14}, indeks4[] = {15};
-	int yhtedepiirkond[16], nullidepiirkond[16], rangeyhtedepiirkond[16];
+	int yhtedepiirkond[16], nullidepiirkond[16], rangeyhtedepiirkond[16], rangenullidepiirkond[16];
 	char tegeliktabel[16];
 	char vektorids6nedena[][4] = {"0000", "0001", "0010", "0011", "0100", "0101", "0110", "0111", "1000", "1001", "1010", "1011", "1100", "1101", "1110", "1111"};
 	FILE *TABEL;
@@ -357,7 +357,7 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 		printf("Viga! Andmefaili ei leitud!");
 		return 1;
 	}
-	int vektor, yhtsuurus = 0, nulsuurus = 0, rangeyhtsuurus = 0;
+	int vektor, yhtsuurus = 0, nulsuurus = 0, rangeyhtsuurus = 0, rangenulsuurus = 0;
 	char kleebe[4], kleebe2[4], kleebe3[4], kleebe4[4], kleebe5[4], kleebe6[4], kleebe7[4], element;
 	for (int i = 0; i < 16; i++)
 	{
@@ -367,6 +367,11 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 		{
 			rangeyhtedepiirkond[rangeyhtsuurus] = vektor;
 			rangeyhtsuurus++;
+		}
+		if (element == '0')
+		{
+			rangenullidepiirkond[rangenulsuurus] = vektor;
+			rangenulsuurus++;
 		}
 		if (element == '1' || element == '-')
 		{
@@ -400,523 +405,1100 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 	int esimesipaare = 0, teisipaare = 0, kolmandaidpaare = 0;	// kleepimisel saadud paaride arvud
 	int kleepumatuesimene = 1, kleepumatuteine = 1, kleepumatukolmas = 1;
 	char paarids6nedena1[64][4], paarids6nedena2[64][4], paarids6nedena3[64][4];	// kleebitud vektorid s6nekujul (nt "01-0")
-
-	// ########### MDNK KLEEPIMINE ###########
-	for (int i = 0; i < 15; i++)	// esimene kleepimine
-	{
-		for (int j = i + 1; j < 16; j++)
-		{
-			if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && !elementmassiivis(j, yhtedepiirkond, yhtsuurus))
-			{
-				paarid1[esimesipaare][0] = i;
-				paarid1[esimesipaare][1] = j;
-				for (int h = 0; h < 4; h++)
-				{
-					paarids6nedena1[esimesipaare][h] = kleebe[h];
-				}
-				esimesipaare++;
-			}
-		}
-	}
-	for (int i = 0; i < 16; i++)	// esimeste kleepumatute otsimine
-	{
-		kleepumatuesimene = 1;
-		for (int j = i + 1; j < 16; j++)
-		{
-			if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && !elementmassiivis(j, yhtedepiirkond, yhtsuurus))
-			{
-				kleepumatuesimene = 0;	// vektor i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
-			}
-		}
-		if (kleepumatuesimene && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && elementpaariteises(i, paarid1, esimesipaare))	// kui vektor i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
-		{
-			kleepumatudesimesed[kleepumatuidesimesi] = i;
-			kleepumatuidesimesi++;
-		}
-	}
-	/*
-	printf("Esimesed paarid:\n");
-	for (int i = 0; i < esimesipaare; i++)
-	{
-		printf("%d\t-\t%d\t\t\t\t", paarid1[i][0], paarid1[i][1]);
-		for (int j = 0; j < 4; j++)
-		{
-			printf("%c", paarids6nedena1[i][j]);
-		}
-		printf("\n");
-	}
-
-	printf("Esimesed kleepumatud (%d tk.):\n", kleepumatuidesimesi);
-	for (int i = 0; i < kleepumatuidesimesi; i++)
-	{
-		printf("%d\t\t\t\t\t\t%c%c%c%c", kleepumatudesimesed[i], vektorids6nedena[kleepumatudesimesed[i]][0], vektorids6nedena[kleepumatudesimesed[i]][1], vektorids6nedena[kleepumatudesimesed[i]][2], vektorids6nedena[kleepumatudesimesed[i]][3]);
-		printf("\n");
-	}
-	*/
-	//printf("%d\n", elementmassiivis(12, paarid1[1], esimesipaare));
-	//printf("%d", elementpaariteises(12, paarid1, esimesipaare));
-	for (int i = 0; i < esimesipaare - 1; i++)	// teine kleepimine
-	{
-		for (int j = i + 1; j < esimesipaare; j++)
-		{
-			if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
-			{
-				paarid2[teisipaare][0] = paarid1[i][0];
-				paarid2[teisipaare][1] = paarid1[i][1];
-				paarid2[teisipaare][2] = paarid1[j][0];
-				paarid2[teisipaare][3] = paarid1[j][1];
-				for (int h = 0; h < 4; h++)
-				{
-					paarids6nedena2[teisipaare][h] = kleebe[h];
-				}
-				teisipaare++;
-			}
-		}
-	}
-	for (int i = 0; i < esimesipaare; i++)	// teiste kleepumatute otsimine
-	{
-		kleepumatuteine = 1;
-		for (int j = i + 1; j < esimesipaare; j++)
-		{
-			if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
-			{
-				kleepumatuteine = 0; // paar i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
-			}
-		}
-		//printf("kontroll: %d\tpaar:%d-%d\n", paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare), paarid1[i][0], paarid1[i][1]);
-		if (kleepumatuteine && paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare))	// kui paar i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
-		{
-			kleepumatudteised[kleepumatuidteisi][0] = paarid1[i][0];
-			kleepumatudteised[kleepumatuidteisi][1] = paarid1[i][1];
-			kleepija(vektorids6nedena[paarid1[i][0]], vektorids6nedena[paarid1[i][1]], kleebe);
-			kleepumatuds6nedena2[kleepumatuidteisi][0] = kleebe[0];
-			kleepumatuds6nedena2[kleepumatuidteisi][1] = kleebe[1];
-			kleepumatuds6nedena2[kleepumatuidteisi][2] = kleebe[2];
-			kleepumatuds6nedena2[kleepumatuidteisi][3] = kleebe[3];
-			//printf("kleepumatud teised: %d-%d\n", kleepumatudteised[kleepumatuidteisi][0], kleepumatudteised[kleepumatuidteisi][1]);
-			kleepumatuidteisi++;
-		}
-	}
-	/*
-	printf("\nTeised paarid:\n");
-	for (int i = 0; i < teisipaare; i++)
-	{
-		printf("%d-%d\t;\t%d-%d\t\t\t\t", paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3]);
-		for (int j = 0; j < 4; j++)
-		{
-			printf("%c", paarids6nedena2[i][j]);
-		}
-		printf("\n");
-	}
-	printf("Teised kleepumatud (%d tk.):\n", kleepumatuidteisi);
-	for (int i = 0; i < kleepumatuidteisi; i++)
-	{
-		printf("%d-%d\t\t\t\t", kleepumatudteised[i][0], kleepumatudteised[i][1]);
-		printf("\n");
-	}
-	*/
-	for (int i = 0; i < teisipaare - 1; i++)	// kolmas kleepimine
-	{
-		for (int j = i + 1; j < teisipaare; j++)
-		{
-			//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
-			//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
-			if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
-			{
-				paarid3[kolmandaidpaare][0] = paarid2[i][0];
-				paarid3[kolmandaidpaare][1] = paarid2[i][1];
-				paarid3[kolmandaidpaare][2] = paarid2[i][2];
-				paarid3[kolmandaidpaare][3] = paarid2[i][3];
-				paarid3[kolmandaidpaare][4] = paarid2[j][0];
-				paarid3[kolmandaidpaare][5] = paarid2[j][1];
-				paarid3[kolmandaidpaare][6] = paarid2[j][2];
-				paarid3[kolmandaidpaare][7] = paarid2[j][3];
-				/*
-				kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
-				kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
-				kleepija(kleebe, kleebe2, kleebe3);
-				kleepija(vektorids6nedena[paarid2[j][0]], vektorids6nedena[paarid2[j][1]], kleebe4);
-				kleepija(vektorids6nedena[paarid2[j][2]], vektorids6nedena[paarid2[j][3]], kleebe5);
-				kleepija(kleebe4, kleebe5, kleebe6);
-				kleepija(kleebe3, kleebe6, kleebe7);
-				*/
-				for (int h = 0; h < 4; h++)
-				{
-					paarids6nedena3[kolmandaidpaare][h] = kleebe[h];
-				}
-				kolmandaidpaare++;
-			}
-		}
-	}
-	for (int i = 0; i < teisipaare; i++)	// kolmandate kleepumatute otsimine
-	{
-		kleepumatukolmas = 1;
-		for (int j = i + 1; j < teisipaare; j++)
-		{
-			//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
-			//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
-			if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
-			{
-				kleepumatukolmas = 0;
-			}
-		}
-		if (kleepumatukolmas && nelikmassiiviteises(paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3], paarid3, teisipaare))	// kui nelik i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
-		{
-			kleepumatudkolmandad[kleepumatuidkolmandaid][0] = paarid2[i][0];
-			kleepumatudkolmandad[kleepumatuidkolmandaid][1] = paarid2[i][1];
-			kleepumatudkolmandad[kleepumatuidkolmandaid][2] = paarid2[i][2];
-			kleepumatudkolmandad[kleepumatuidkolmandaid][3] = paarid2[i][3];
-			kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
-			kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
-			kleepija(kleebe, kleebe2, kleebe3);
-			kleepumatuds6nedena3[kleepumatuidkolmandaid][0] = kleebe3[0];
-			kleepumatuds6nedena3[kleepumatuidkolmandaid][1] = kleebe3[1];
-			kleepumatuds6nedena3[kleepumatuidkolmandaid][2] = kleebe3[2];
-			kleepumatuds6nedena3[kleepumatuidkolmandaid][3] = kleebe3[3];
-			//printf("kleepumatud kolmandad: %d-%d-%d-%d\n", kleepumatudkolmandad[kleepumatuidkolmandaid][0], kleepumatudkolmandad[kleepumatuidkolmandaid][1], kleepumatudkolmandad[kleepumatuidkolmandaid][2], kleepumatudkolmandad[kleepumatuidkolmandaid][3]);
-			kleepumatuidkolmandaid++;
-		}
-	}
-	/*
-	printf("\nKolmandad paarid: \n");
-	for (int i = 0; i < kolmandaidpaare; i++)
-	{
-		printf("%d-%d-%d-%d   \t;\t%d-%d-%d-%d\t\t", paarid3[i][0], paarid3[i][1], paarid3[i][2], paarid3[i][3], paarid3[i][4], paarid3[i][5], paarid3[i][6], paarid3[i][7]);
-		for (int j = 0; j < 4; j++)
-		{
-			printf("%c", paarids6nedena3[i][j]);
-		}
-		printf("\n");
-	}
-	printf("Kolmandad kleepumatud: (%d tk.)\n", kleepumatuidkolmandaid);
-	for (int i = 0; i < kleepumatuidkolmandaid; i++)
-	{
-		printf("%d-%d-%d-%d\n", kleepumatudkolmandad[i][0], kleepumatudkolmandad[i][1], kleepumatudkolmandad[i][2], kleepumatudkolmandad[i][3]);
-	}
-	printf("\n");
-	*/
-	// ########### MDNK LIHTIMPLIKANDID ###########
 	int rangevektor = 0;
 	char implikandipuhver[64][4], lihtimplikandid[64][4];
 	int implikantepuhvris = 0;
-	for (int i = 0; i < kleepumatuidesimesi; i++)
-	{
-		kleepumatuds6nedena1[i][0] = vektorids6nedena[kleepumatudesimesed[i]][0];
-		kleepumatuds6nedena1[i][1] = vektorids6nedena[kleepumatudesimesed[i]][1];
-		kleepumatuds6nedena1[i][2] = vektorids6nedena[kleepumatudesimesed[i]][2];
-		kleepumatuds6nedena1[i][3] = vektorids6nedena[kleepumatudesimesed[i]][3];
-		//printf("%c%c%c%c\n", kleepumatuds6nedena1[i][0], kleepumatuds6nedena1[i][1], kleepumatuds6nedena1[i][2], kleepumatuds6nedena1[i][3]);
-	}
-	for (int i = 0; i < kleepumatuidesimesi; i++)
-	{
-		implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena1[i][0];
-		implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena1[i][1];
-		implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena1[i][2];
-		implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena1[i][3];
-		implikantepuhvris++;
-		//printf("%c%c%c%c\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3]);
-	}
-	for (int i = 0; i < kleepumatuidteisi; i++)
-	{
-		implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena2[i][0];
-		implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena2[i][1];
-		implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena2[i][2];
-		implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena2[i][3];
-		implikantepuhvris++;
-		//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
-	}
-	for (int i = 0; i < kleepumatuidkolmandaid; i++)
-	{
-		implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena3[i][0];
-		implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena3[i][1];
-		implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena3[i][2];
-		implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena3[i][3];
-		implikantepuhvris++;
-		//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
-	}
-	for (int i = 0; i < kolmandaidpaare; i++)
-	{
-		implikandipuhver[implikantepuhvris][0] = paarids6nedena3[i][0];
-		implikandipuhver[implikantepuhvris][1] = paarids6nedena3[i][1];
-		implikandipuhver[implikantepuhvris][2] = paarids6nedena3[i][2];
-		implikandipuhver[implikantepuhvris][3] = paarids6nedena3[i][3];
-		implikantepuhvris++;
-		//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
-	}
 	int lihtimplikante = 0;
 	int kordumatu = 1;
-	for (int i = 0; i < implikantepuhvris; i++)
-	{
-		kordumatu = 1;
-		for (int j = 0; j < lihtimplikante; j++)
-		{
-			//printf("%c%c%c%c|||%c%c%c%c|||\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3], lihtimplikandid[lihtimplikante-1][0], lihtimplikandid[lihtimplikante-1][1], lihtimplikandid[lihtimplikante-1][2], lihtimplikandid[lihtimplikante-1][3]);
-			if(implikandipuhver[i][0] == lihtimplikandid[j][0] && implikandipuhver[i][1] == lihtimplikandid[j][1] && implikandipuhver[i][2] == lihtimplikandid[j][2] && implikandipuhver[i][3] == lihtimplikandid[j][3])
-			{
-				//printf("korduv\n");
-				kordumatu = 0;
-			}
-		}
-		if (kordumatu)
-		{
-			lihtimplikandid[lihtimplikante][0] = implikandipuhver[i][0];
-			lihtimplikandid[lihtimplikante][1] = implikandipuhver[i][1];
-			lihtimplikandid[lihtimplikante][2] = implikandipuhver[i][2];
-			lihtimplikandid[lihtimplikante][3] = implikandipuhver[i][3];
-			//printf("%c%c%c%c\n", lihtimplikandid[lihtimplikante][0], lihtimplikandid[lihtimplikante][1], lihtimplikandid[lihtimplikante][2], lihtimplikandid[lihtimplikante][3]);
-			lihtimplikante++;
-		}
-	}
-	/*
-	for (int i = 0; i < lihtimplikante; i++)
-	{
-		printf("%c%c%c%c\n", lihtimplikandid[i][0], lihtimplikandid[i][1], lihtimplikandid[i][2], lihtimplikandid[i][3]);
-	}
-	*/
-	// ########### MDNK MINIMAALNE RANGE KATE ###########
 	int ei = 1, t2is = 0;
 	int elemente = 0, katvad[64];
-	for (int i = 0; i < lihtimplikante; i++)
-	{
-		t2is = 0;
-		for (int j = 0; j < rangeyhtsuurus; j++)
-		{
-			ei = 1;
-			for (int k = 0; k < 4; k++)
-			{
-				//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
-				if (lihtimplikandid[i][k] != '-' && lihtimplikandid[i][k] != vektorids6nedena[rangeyhtedepiirkond[j]][k])
-				{
-					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
-					ei = 0;
-				}
-			}
-			if (ei)
-			{
-				t2is++;
-			}
-		}
-		if (t2is)
-		{
-			katvad[elemente] = i;
-			//printf("t2is (%d)\n", i);
-			elemente++;
-		}
-	}
+	int rangeidlihtimplikante;
 	char rangedlihtimplikandid[64][4];
-	int rangeidlihtimplikante = elemente;
-	for (int i = 0; i < rangeidlihtimplikante; i++)
-	{
-		rangedlihtimplikandid[i][0] = lihtimplikandid[katvad[i]][0];
-		rangedlihtimplikandid[i][1] = lihtimplikandid[katvad[i]][1];
-		rangedlihtimplikandid[i][2] = lihtimplikandid[katvad[i]][2];
-		rangedlihtimplikandid[i][3] = lihtimplikandid[katvad[i]][3];
-	}
-	printf("LIHTIMPLIKANDID VEKTORKUJUL (%d tk.) JA RANGE KATE: \n\n", lihtimplikante);
-	printf("Lihtimp; 1-pk\t");
-	for (int i = 0; i < rangeyhtsuurus; i++)
-	{
-		printf("%d\t", rangeyhtedepiirkond[i]);
-	}
-	int maatriks[rangeidlihtimplikante][rangeyhtsuurus];
-	printf("\n");
-	for (int i = 0; i < rangeidlihtimplikante; i++)
-	{
-		printf("%c%c%c%c\t\t", rangedlihtimplikandid[i][0], rangedlihtimplikandid[i][1], rangedlihtimplikandid[i][2], rangedlihtimplikandid[i][3]);
-		for (int j = 0; j < rangeyhtsuurus; j++)
-		{
-			ei = 1;
-			for (int k = 0; k < 4; k++)
-			{
-				//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
-				if (rangedlihtimplikandid[i][k] != '-' && rangedlihtimplikandid[i][k] != vektorids6nedena[rangeyhtedepiirkond[j]][k])
-				{
-					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
-					ei = 0;
-				}
-			}
-			if (ei)
-			{
-				printf("X\t");
-				maatriks[i][j] = 1;
-			}
-			else
-			{
-				printf("\t");
-				maatriks[i][j] = 0;
-			}
-		}
-		printf("\n");
-		printf("-----------");
-		for (int z = 0; z < rangeyhtsuurus; z++)
-		{
-			printf("--------");
-		}
-		printf("\n");
-	}
-	// minimaalse range katte otsimine maatriksi abil
 	int kaetud = 0;
 	int katteid = 0;
 	int valituid = 0;
 	int viimanekatja = 0;
 	int korduvimplikant = 0;
-	int valitud[rangeidlihtimplikante];
-	for (int i = 0; i < rangeyhtsuurus; i++)
-	{
-		katteid = 0;
-		for (int j = 0; j < rangeidlihtimplikante; j++)
-		{
-			if (maatriks[j][i] == 1)
-			{
-				katteid++;
-				viimanekatja = j;
-			}
-		}
-		if (katteid == 1)	// valime kindlalt lihtimplikandi, mis on mingi vektori korral ainsaks katjaks
-		{
-			korduvimplikant = 0;
-			for (int k = 0; k < valituid; k++)
-			{
-				if (valitud[k] == viimanekatja)
-				{
-					korduvimplikant = 1;
-				}
-			}
-			if (!korduvimplikant)
-			{
-				valitud[valituid] = viimanekatja;
-				valituid++;
-			}
-		}
-	}
-	//printf("V2ltimatult valitud: ");
-	printf("Implikant:kattem22r\n");
-	/*
-	for (int i = 0; i < valituid; i++)
-	{
-		if (i == valituid - 1)
-		{
-			printf("%d\n", valitud[i]);
-		}
-		else
-		{
-			printf("%d, ", valitud[i]);
-		}
-	}
-	if (valituid == 0)
-	{
-		printf("-\n");
-	}
-	*/
-	katteid = 0;
+	int valitud[256];
 	int suurimaidkatteid = 0;
 	int suurimvalimata = 0;
 	int rangekattuvus = 0;
-	int implikandidkattuvusega[rangeidlihtimplikante][2];	// esimene element on implikandi indeks, teine element n2itab kui palju vastav lihtimplikant katab
+	int implikandidkattuvusega[256][2];	// esimene element on implikandi indeks, teine element n2itab kui palju vastav lihtimplikant katab
 	int katab = 0;
-	for (int i = 0; i < rangeidlihtimplikante; i++)	// t2idame massivi implikantide indekside ja vastavate kattuvust iseloomustavate suurustega
-	{
-		katteid = 0;
-		for (int j = 0; j < rangeyhtsuurus; j++)
-		{
-			if (maatriks[i][j] == 1)
-			{
-				katteid++;
-			}
-			implikandidkattuvusega[i][0] = i;					// implikandi indeks
-			implikandidkattuvusega[i][1] = katteid;		// implikandi kattuvus
-		}
-	}
 	int puhver[2];
-	for (int i = 1; i < rangeidlihtimplikante; i++)	// sorteerime t2idetud massivi kattuvuses kasvavas j2rjekorras
-	{
-		for (int j = 0; j < rangeidlihtimplikante - i; j++)
-		{
-			if (implikandidkattuvusega[j][1] > implikandidkattuvusega[j+1][1])
-			{
-				puhver[0] = implikandidkattuvusega[j][0];
-				puhver[1] = implikandidkattuvusega[j][1];
-				implikandidkattuvusega[j][0] = implikandidkattuvusega[j+1][0];
-				implikandidkattuvusega[j][1] = implikandidkattuvusega[j+1][1];
-				implikandidkattuvusega[j+1][0] = puhver[0];
-				implikandidkattuvusega[j+1][1] = puhver[1];
-			}
-		}
-	}
-	for (int i = 0; i < rangeidlihtimplikante; i++)
-	{
-		printf("%d:%d\t", implikandidkattuvusega[i][0], implikandidkattuvusega[i][1]);
-	}
-	int d = rangeidlihtimplikante - 1;
+	int d;
 	int kordub, rist = 0, kattuvusm22r = 0;
-	printf("\n");
-	while(!kaetud)	// lisame k6ige rohkem katvaid implikante seni, kuni kogu range 1-piirkond saab kaetud
+	if (yhtsuurus == 16)
 	{
-		kordub = 0;
-		//printf("dektrementeerimata d: %d\n", d);
-		for (int i = 0; i < valituid; i++)
+		printf("Konstant-1 funktsioonil puudub MDNK.\n");
+		return 2;
+	}
+	if (nulsuurus == 16)
+	{
+		printf("Konstant-0 funktsioonil puudub MKNK.\n");
+		return 3;
+	}
+	// ########### MDNK KLEEPIMINE ###########
+	if (rangeyhtsuurus > 0) // OSALISELT M22RATUD FUNKTSIOONIL LEIDUB MDNK AINULT SIIS, KUI TA YHTEDEPIIRKOND POLE TYHI HULK
+	{
+		for (int i = 0; i < 15; i++)	// esimene kleepimine
 		{
-			//printf("valitud vs v6rreldav %d:%d\n", valitud[i], implikandidkattuvusega[d][0]);
-			if (implikandidkattuvusega[d][0] == valitud[i])
+			for (int j = i + 1; j < 16; j++)
 			{
-				//printf("-\n");
-				kordub = 1;
-			}
-		}
-		if (!kordub)
-		{
-			//printf("+\n");
-			valitud[valituid] = implikandidkattuvusega[d][0];
-			valituid++;
-		}
-		kattuvusm22r = 0;
-		for (int i = 0; i < rangeyhtsuurus; i++)
-		{
-			rist = 0;
-			for (int j = 0; j < valituid; j++)
-			{
-				if (maatriks[valitud[j]][i] == 1)
+				if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && !elementmassiivis(j, yhtedepiirkond, yhtsuurus))
 				{
-					rist = 1;
+					paarid1[esimesipaare][0] = i;
+					paarid1[esimesipaare][1] = j;
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena1[esimesipaare][h] = kleebe[h];
+					}
+					esimesipaare++;
 				}
 			}
-			if (rist)
+		}
+		for (int i = 0; i < 16; i++)	// esimeste kleepumatute otsimine
+		{
+			kleepumatuesimene = 1;
+			for (int j = i + 1; j < 16; j++)
 			{
-				kattuvusm22r++;
+				if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && !elementmassiivis(j, yhtedepiirkond, yhtsuurus))
+				{
+					kleepumatuesimene = 0;	// vektor i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
+				}
+			}
+			if (kleepumatuesimene && !elementmassiivis(i, yhtedepiirkond, yhtsuurus) && elementpaariteises(i, paarid1, esimesipaare))	// kui vektor i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudesimesed[kleepumatuidesimesi] = i;
+				kleepumatuidesimesi++;
 			}
 		}
-		//printf("kattuvusm22r: %d\n", kattuvusm22r);
-		if (kattuvusm22r == rangeyhtsuurus)
+		/*
+		printf("Esimesed paarid:\n");
+		for (int i = 0; i < esimesipaare; i++)
 		{
-			kaetud = 1;
+			printf("%d\t-\t%d\t\t\t\t", paarid1[i][0], paarid1[i][1]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena1[i][j]);
+			}
+			printf("\n");
 		}
-		d--;
-		//printf("dektrementeeritud d: %d\n", d);
+
+		printf("Esimesed kleepumatud (%d tk.):\n", kleepumatuidesimesi);
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			printf("%d\t\t\t\t\t\t%c%c%c%c", kleepumatudesimesed[i], vektorids6nedena[kleepumatudesimesed[i]][0], vektorids6nedena[kleepumatudesimesed[i]][1], vektorids6nedena[kleepumatudesimesed[i]][2], vektorids6nedena[kleepumatudesimesed[i]][3]);
+			printf("\n");
+		}
+		*/
+		//printf("%d\n", elementmassiivis(12, paarid1[1], esimesipaare));
+		//printf("%d", elementpaariteises(12, paarid1, esimesipaare));
+		for (int i = 0; i < esimesipaare - 1; i++)	// teine kleepimine
+		{
+			for (int j = i + 1; j < esimesipaare; j++)
+			{
+				if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
+				{
+					paarid2[teisipaare][0] = paarid1[i][0];
+					paarid2[teisipaare][1] = paarid1[i][1];
+					paarid2[teisipaare][2] = paarid1[j][0];
+					paarid2[teisipaare][3] = paarid1[j][1];
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena2[teisipaare][h] = kleebe[h];
+					}
+					teisipaare++;
+				}
+			}
+		}
+		for (int i = 0; i < esimesipaare; i++)	// teiste kleepumatute otsimine
+		{
+			kleepumatuteine = 1;
+			for (int j = i + 1; j < esimesipaare; j++)
+			{
+				if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
+				{
+					kleepumatuteine = 0; // paar i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
+				}
+			}
+			//printf("kontroll: %d\tpaar:%d-%d\n", paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare), paarid1[i][0], paarid1[i][1]);
+			if (kleepumatuteine && paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare))	// kui paar i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudteised[kleepumatuidteisi][0] = paarid1[i][0];
+				kleepumatudteised[kleepumatuidteisi][1] = paarid1[i][1];
+				kleepija(vektorids6nedena[paarid1[i][0]], vektorids6nedena[paarid1[i][1]], kleebe);
+				kleepumatuds6nedena2[kleepumatuidteisi][0] = kleebe[0];
+				kleepumatuds6nedena2[kleepumatuidteisi][1] = kleebe[1];
+				kleepumatuds6nedena2[kleepumatuidteisi][2] = kleebe[2];
+				kleepumatuds6nedena2[kleepumatuidteisi][3] = kleebe[3];
+				//printf("kleepumatud teised: %d-%d\n", kleepumatudteised[kleepumatuidteisi][0], kleepumatudteised[kleepumatuidteisi][1]);
+				kleepumatuidteisi++;
+			}
+		}
+		/*
+		printf("\nTeised paarid:\n");
+		for (int i = 0; i < teisipaare; i++)
+		{
+			printf("%d-%d\t;\t%d-%d\t\t\t\t", paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena2[i][j]);
+			}
+			printf("\n");
+		}
+		printf("Teised kleepumatud (%d tk.):\n", kleepumatuidteisi);
+		for (int i = 0; i < kleepumatuidteisi; i++)
+		{
+			printf("%d-%d\t\t\t\t", kleepumatudteised[i][0], kleepumatudteised[i][1]);
+			printf("\n");
+		}
+		*/
+		for (int i = 0; i < teisipaare - 1; i++)	// kolmas kleepimine
+		{
+			for (int j = i + 1; j < teisipaare; j++)
+			{
+				//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
+				//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
+				if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
+				{
+					paarid3[kolmandaidpaare][0] = paarid2[i][0];
+					paarid3[kolmandaidpaare][1] = paarid2[i][1];
+					paarid3[kolmandaidpaare][2] = paarid2[i][2];
+					paarid3[kolmandaidpaare][3] = paarid2[i][3];
+					paarid3[kolmandaidpaare][4] = paarid2[j][0];
+					paarid3[kolmandaidpaare][5] = paarid2[j][1];
+					paarid3[kolmandaidpaare][6] = paarid2[j][2];
+					paarid3[kolmandaidpaare][7] = paarid2[j][3];
+					/*
+					kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
+					kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
+					kleepija(kleebe, kleebe2, kleebe3);
+					kleepija(vektorids6nedena[paarid2[j][0]], vektorids6nedena[paarid2[j][1]], kleebe4);
+					kleepija(vektorids6nedena[paarid2[j][2]], vektorids6nedena[paarid2[j][3]], kleebe5);
+					kleepija(kleebe4, kleebe5, kleebe6);
+					kleepija(kleebe3, kleebe6, kleebe7);
+					*/
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena3[kolmandaidpaare][h] = kleebe[h];
+					}
+					kolmandaidpaare++;
+				}
+			}
+		}
+		for (int i = 0; i < teisipaare; i++)	// kolmandate kleepumatute otsimine
+		{
+			kleepumatukolmas = 1;
+			for (int j = i + 1; j < teisipaare; j++)
+			{
+				//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
+				//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
+				if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
+				{
+					kleepumatukolmas = 0;
+				}
+			}
+			if (kleepumatukolmas && nelikmassiiviteises(paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3], paarid3, teisipaare))	// kui nelik i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudkolmandad[kleepumatuidkolmandaid][0] = paarid2[i][0];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][1] = paarid2[i][1];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][2] = paarid2[i][2];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][3] = paarid2[i][3];
+				kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
+				kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
+				kleepija(kleebe, kleebe2, kleebe3);
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][0] = kleebe3[0];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][1] = kleebe3[1];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][2] = kleebe3[2];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][3] = kleebe3[3];
+				//printf("kleepumatud kolmandad: %d-%d-%d-%d\n", kleepumatudkolmandad[kleepumatuidkolmandaid][0], kleepumatudkolmandad[kleepumatuidkolmandaid][1], kleepumatudkolmandad[kleepumatuidkolmandaid][2], kleepumatudkolmandad[kleepumatuidkolmandaid][3]);
+				kleepumatuidkolmandaid++;
+			}
+		}
+		/*
+		printf("\nKolmandad paarid: \n");
+		for (int i = 0; i < kolmandaidpaare; i++)
+		{
+			printf("%d-%d-%d-%d   \t;\t%d-%d-%d-%d\t\t", paarid3[i][0], paarid3[i][1], paarid3[i][2], paarid3[i][3], paarid3[i][4], paarid3[i][5], paarid3[i][6], paarid3[i][7]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena3[i][j]);
+			}
+			printf("\n");
+		}
+		printf("Kolmandad kleepumatud: (%d tk.)\n", kleepumatuidkolmandaid);
+		for (int i = 0; i < kleepumatuidkolmandaid; i++)
+		{
+			printf("%d-%d-%d-%d\n", kleepumatudkolmandad[i][0], kleepumatudkolmandad[i][1], kleepumatudkolmandad[i][2], kleepumatudkolmandad[i][3]);
+		}
+		printf("\n");
+		*/
+		// ########### MDNK LIHTIMPLIKANDID ###########
+		rangevektor = 0;
+		implikantepuhvris = 0;
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			kleepumatuds6nedena1[i][0] = vektorids6nedena[kleepumatudesimesed[i]][0];
+			kleepumatuds6nedena1[i][1] = vektorids6nedena[kleepumatudesimesed[i]][1];
+			kleepumatuds6nedena1[i][2] = vektorids6nedena[kleepumatudesimesed[i]][2];
+			kleepumatuds6nedena1[i][3] = vektorids6nedena[kleepumatudesimesed[i]][3];
+			//printf("%c%c%c%c\n", kleepumatuds6nedena1[i][0], kleepumatuds6nedena1[i][1], kleepumatuds6nedena1[i][2], kleepumatuds6nedena1[i][3]);
+		}
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena1[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena1[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena1[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena1[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3]);
+		}
+		for (int i = 0; i < kleepumatuidteisi; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena2[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena2[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena2[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena2[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		for (int i = 0; i < kleepumatuidkolmandaid; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena3[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena3[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena3[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena3[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		for (int i = 0; i < kolmandaidpaare; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = paarids6nedena3[i][0];
+			implikandipuhver[implikantepuhvris][1] = paarids6nedena3[i][1];
+			implikandipuhver[implikantepuhvris][2] = paarids6nedena3[i][2];
+			implikandipuhver[implikantepuhvris][3] = paarids6nedena3[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		lihtimplikante = 0;
+		kordumatu = 1;
+		for (int i = 0; i < implikantepuhvris; i++)
+		{
+			kordumatu = 1;
+			for (int j = 0; j < lihtimplikante; j++)
+			{
+				//printf("%c%c%c%c|||%c%c%c%c|||\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3], lihtimplikandid[lihtimplikante-1][0], lihtimplikandid[lihtimplikante-1][1], lihtimplikandid[lihtimplikante-1][2], lihtimplikandid[lihtimplikante-1][3]);
+				if(implikandipuhver[i][0] == lihtimplikandid[j][0] && implikandipuhver[i][1] == lihtimplikandid[j][1] && implikandipuhver[i][2] == lihtimplikandid[j][2] && implikandipuhver[i][3] == lihtimplikandid[j][3])
+				{
+					//printf("korduv\n");
+					kordumatu = 0;
+				}
+			}
+			if (kordumatu)
+			{
+				lihtimplikandid[lihtimplikante][0] = implikandipuhver[i][0];
+				lihtimplikandid[lihtimplikante][1] = implikandipuhver[i][1];
+				lihtimplikandid[lihtimplikante][2] = implikandipuhver[i][2];
+				lihtimplikandid[lihtimplikante][3] = implikandipuhver[i][3];
+				//printf("%c%c%c%c\n", lihtimplikandid[lihtimplikante][0], lihtimplikandid[lihtimplikante][1], lihtimplikandid[lihtimplikante][2], lihtimplikandid[lihtimplikante][3]);
+				lihtimplikante++;
+			}
+		}
+		/*
+		for (int i = 0; i < lihtimplikante; i++)
+		{
+			printf("%c%c%c%c\n", lihtimplikandid[i][0], lihtimplikandid[i][1], lihtimplikandid[i][2], lihtimplikandid[i][3]);
+		}
+		*/
+		// ########### MDNK MINIMAALNE RANGE KATE ###########
+		ei = 1;
+		t2is = 0;
+		elemente = 0;
+		for (int i = 0; i < lihtimplikante; i++)
+		{
+			t2is = 0;
+			for (int j = 0; j < rangeyhtsuurus; j++)
+			{
+				ei = 1;
+				for (int k = 0; k < 4; k++)
+				{
+					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
+					if (lihtimplikandid[i][k] != '-' && lihtimplikandid[i][k] != vektorids6nedena[rangeyhtedepiirkond[j]][k])
+					{
+						//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
+						ei = 0;
+					}
+				}
+				if (ei)
+				{
+					t2is++;
+				}
+			}
+			if (t2is)
+			{
+				katvad[elemente] = i;
+				//printf("t2is (%d)\n", i);
+				elemente++;
+			}
+		}
+		rangeidlihtimplikante = elemente;
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			rangedlihtimplikandid[i][0] = lihtimplikandid[katvad[i]][0];
+			rangedlihtimplikandid[i][1] = lihtimplikandid[katvad[i]][1];
+			rangedlihtimplikandid[i][2] = lihtimplikandid[katvad[i]][2];
+			rangedlihtimplikandid[i][3] = lihtimplikandid[katvad[i]][3];
+		}
+		printf("LIHTIMPLIKANDID VEKTORKUJUL (%d tk.) JA RANGE KATE: \n\n", lihtimplikante);
+		printf("Lihtimp; 1-pk\t");
+		for (int i = 0; i < rangeyhtsuurus; i++)
+		{
+			printf("%d\t", rangeyhtedepiirkond[i]);
+		}
+		int maatriks[rangeidlihtimplikante][rangeyhtsuurus];
+		printf("\n");
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			printf("%c%c%c%c\t\t", rangedlihtimplikandid[i][0], rangedlihtimplikandid[i][1], rangedlihtimplikandid[i][2], rangedlihtimplikandid[i][3]);
+			for (int j = 0; j < rangeyhtsuurus; j++)
+			{
+				ei = 1;
+				for (int k = 0; k < 4; k++)
+				{
+					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
+					if (rangedlihtimplikandid[i][k] != '-' && rangedlihtimplikandid[i][k] != vektorids6nedena[rangeyhtedepiirkond[j]][k])
+					{
+						//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
+						ei = 0;
+					}
+				}
+				if (ei)
+				{
+					printf("X\t");
+					maatriks[i][j] = 1;
+				}
+				else
+				{
+					printf("\t");
+					maatriks[i][j] = 0;
+				}
+			}
+			printf("\n");
+			printf("-----------");
+			for (int z = 0; z < rangeyhtsuurus; z++)
+			{
+				printf("--------");
+			}
+			printf("\n");
+		}
+		// minimaalse range katte otsimine maatriksi abil
+		kaetud = 0;
+		katteid = 0;
+		valituid = 0;
+		viimanekatja = 0;
+		korduvimplikant = 0;
+		for (int i = 0; i < rangeyhtsuurus; i++)
+		{
+			katteid = 0;
+			for (int j = 0; j < rangeidlihtimplikante; j++)
+			{
+				if (maatriks[j][i] == 1)
+				{
+					katteid++;
+					viimanekatja = j;
+				}
+			}
+			if (katteid == 1)	// valime kindlalt lihtimplikandi, mis on mingi vektori korral ainsaks katjaks
+			{
+				korduvimplikant = 0;
+				for (int k = 0; k < valituid; k++)
+				{
+					if (valitud[k] == viimanekatja)
+					{
+						korduvimplikant = 1;
+					}
+				}
+				if (!korduvimplikant)
+				{
+					valitud[valituid] = viimanekatja;
+					valituid++;
+				}
+			}
+		}
+		//printf("V2ltimatult valitud: ");
+		printf("Implikant:kattem22r\n");
+		/*
+		for (int i = 0; i < valituid; i++)
+		{
+			if (i == valituid - 1)
+			{
+				printf("%d\n", valitud[i]);
+			}
+			else
+			{
+				printf("%d, ", valitud[i]);
+			}
+		}
+		if (valituid == 0)
+		{
+			printf("-\n");
+		}
+		*/
+		katteid = 0;
+		suurimaidkatteid = 0;
+		suurimvalimata = 0;
+		rangekattuvus = 0;
+		katab = 0;
+		for (int i = 0; i < rangeidlihtimplikante; i++)	// t2idame massivi implikantide indekside ja vastavate kattuvust iseloomustavate suurustega
+		{
+			katteid = 0;
+			for (int j = 0; j < rangeyhtsuurus; j++)
+			{
+				if (maatriks[i][j] == 1)
+				{
+					katteid++;
+				}
+				implikandidkattuvusega[i][0] = i;					// implikandi indeks
+				implikandidkattuvusega[i][1] = katteid;		// implikandi kattuvus
+			}
+		}
+		for (int i = 1; i < rangeidlihtimplikante; i++)	// sorteerime t2idetud massivi kattuvuses kasvavas j2rjekorras
+		{
+			for (int j = 0; j < rangeidlihtimplikante - i; j++)
+			{
+				if (implikandidkattuvusega[j][1] > implikandidkattuvusega[j+1][1])
+				{
+					puhver[0] = implikandidkattuvusega[j][0];
+					puhver[1] = implikandidkattuvusega[j][1];
+					implikandidkattuvusega[j][0] = implikandidkattuvusega[j+1][0];
+					implikandidkattuvusega[j][1] = implikandidkattuvusega[j+1][1];
+					implikandidkattuvusega[j+1][0] = puhver[0];
+					implikandidkattuvusega[j+1][1] = puhver[1];
+				}
+			}
+		}
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			printf("%d:%d\t", implikandidkattuvusega[i][0], implikandidkattuvusega[i][1]);
+		}
+		d = rangeidlihtimplikante - 1;
+		rist = 0;
+		kattuvusm22r = 0;
+		printf("\n");
+		while(!kaetud)	// lisame k6ige rohkem katvaid implikante seni, kuni kogu range 1-piirkond saab kaetud
+		{
+			kordub = 0;
+			//printf("dektrementeerimata d: %d\n", d);
+			for (int i = 0; i < valituid; i++)
+			{
+				//printf("valitud vs v6rreldav %d:%d\n", valitud[i], implikandidkattuvusega[d][0]);
+				if (implikandidkattuvusega[d][0] == valitud[i])
+				{
+					//printf("-\n");
+					kordub = 1;
+				}
+			}
+			if (!kordub)
+			{
+				//printf("+\n");
+				valitud[valituid] = implikandidkattuvusega[d][0];
+				valituid++;
+			}
+			kattuvusm22r = 0;
+			for (int i = 0; i < rangeyhtsuurus; i++)
+			{
+				rist = 0;
+				for (int j = 0; j < valituid; j++)
+				{
+					if (maatriks[valitud[j]][i] == 1)
+					{
+						rist = 1;
+					}
+				}
+				if (rist)
+				{
+					kattuvusm22r++;
+				}
+			}
+			//printf("kattuvusm22r: %d\n", kattuvusm22r);
+			if (kattuvusm22r == rangeyhtsuurus)
+			{
+				kaetud = 1;
+			}
+			d--;
+			//printf("dektrementeeritud d: %d\n", d);
+		}
+
+		printf("MDNK (¬ on j2rgneva muutuja ivnersioon): \n");
+		for (int i = 0; i < valituid; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				if (rangedlihtimplikandid[valitud[i]][j] == '1')
+				{
+					printf("x%d", j + 1);
+					fprintf(MDNK, "x%d", j + 1);
+				}
+				if (rangedlihtimplikandid[valitud[i]][j] == '0')
+				{
+					printf("¬x%d", j + 1);
+					fprintf(MDNK, "¬x%d", j + 1);
+				}
+			}
+			if (i < valituid - 1)
+			{
+				printf(" v ");
+				fprintf(MDNK, " v ");
+			}
+		}
+		printf("\nMINIMEERITUD DISJUNKTIIVNE NORMAALKUJU EDUKALT FAILI SALVESTATUD!\n");
 	}
 
-	printf("MDNK (¬ on j2rgneva muutuja ivnersioon): \n");
-	for (int i = 0; i < valituid; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			if (rangedlihtimplikandid[valitud[i]][j] == '1')
-			{
-				printf("x%d", j + 1);
-				fprintf(MDNK, "x%d", j + 1);
-			}
-			if (rangedlihtimplikandid[valitud[i]][j] == '0')
-			{
-				printf("¬x%d", j + 1);
-				fprintf(MDNK, "¬x%d", j + 1);
-			}
-		}
-		if (i < valituid - 1)
-		{
-			printf(" v ");
-			fprintf(MDNK, " v ");
-		}
-	}
-	printf("\nMINIMEERITUD DISJUNKTIIVNE NORMAALKUJU EDUKALT FAILI SALVESTATUD!\n");
+	esimesipaare = 0;
+	teisipaare = 0;
+	kolmandaidpaare = 0;
+	kleepumatuidesimesi = 0;
+	kleepumatuidteisi = 0;
+	kleepumatuidkolmandaid = 0;
 	// ########### MKNK KLEEPIMINE ###########
+	if (rangenulsuurus > 0) // OSALISELT M22RATUD FUNKTSIOONIL LEIDUB MKNK AINULT SIIS, KUI TA YHTEDEPIIRKOND POLE TYHI HULK
+	{
+		for (int i = 0; i < 15; i++)	// esimene kleepimine
+		{
+			for (int j = i + 1; j < 16; j++)
+			{
+				if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, nullidepiirkond, nulsuurus) && !elementmassiivis(j, nullidepiirkond, nulsuurus))
+				{
+					paarid1[esimesipaare][0] = i;
+					paarid1[esimesipaare][1] = j;
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena1[esimesipaare][h] = kleebe[h];
+					}
+					esimesipaare++;
+				}
+			}
+		}
+		for (int i = 0; i < 16; i++)	// esimeste kleepumatute otsimine
+		{
+			kleepumatuesimene = 1;
+			for (int j = i + 1; j < 16; j++)
+			{
+				if (kleepija(vektorids6nedena[i], vektorids6nedena[j], kleebe) == 0 && !elementmassiivis(i, nullidepiirkond, nulsuurus) && !elementmassiivis(j, nullidepiirkond, nulsuurus))
+				{
+					kleepumatuesimene = 0;	// vektor i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
+				}
+			}
+			if (kleepumatuesimene && !elementmassiivis(i, nullidepiirkond, nulsuurus) && elementpaariteises(i, paarid1, esimesipaare))	// kui vektor i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudesimesed[kleepumatuidesimesi] = i;
+				kleepumatuidesimesi++;
+			}
+		}
+		/*
+		printf("Esimesed paarid:\n");
+		for (int i = 0; i < esimesipaare; i++)
+		{
+			printf("%d\t-\t%d\t\t\t\t", paarid1[i][0], paarid1[i][1]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena1[i][j]);
+			}
+			printf("\n");
+		}
+
+		printf("Esimesed kleepumatud (%d tk.):\n", kleepumatuidesimesi);
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			printf("%d\t\t\t\t\t\t%c%c%c%c", kleepumatudesimesed[i], vektorids6nedena[kleepumatudesimesed[i]][0], vektorids6nedena[kleepumatudesimesed[i]][1], vektorids6nedena[kleepumatudesimesed[i]][2], vektorids6nedena[kleepumatudesimesed[i]][3]);
+			printf("\n");
+		}
+		*/
+		//printf("%d\n", elementmassiivis(12, paarid1[1], esimesipaare));
+		//printf("%d", elementpaariteises(12, paarid1, esimesipaare));
+		for (int i = 0; i < esimesipaare - 1; i++)	// teine kleepimine
+		{
+			for (int j = i + 1; j < esimesipaare; j++)
+			{
+				if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
+				{
+					paarid2[teisipaare][0] = paarid1[i][0];
+					paarid2[teisipaare][1] = paarid1[i][1];
+					paarid2[teisipaare][2] = paarid1[j][0];
+					paarid2[teisipaare][3] = paarid1[j][1];
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena2[teisipaare][h] = kleebe[h];
+					}
+					teisipaare++;
+				}
+			}
+		}
+		for (int i = 0; i < esimesipaare; i++)	// teiste kleepumatute otsimine
+		{
+			kleepumatuteine = 1;
+			for (int j = i + 1; j < esimesipaare; j++)
+			{
+				if (kleepija(paarids6nedena1[i], paarids6nedena1[j], kleebe) == 0)
+				{
+					kleepumatuteine = 0; // paar i on kasv6i kordki kleebitav, seega muudame v22rtuse 0-ks
+				}
+			}
+			//printf("kontroll: %d\tpaar:%d-%d\n", paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare), paarid1[i][0], paarid1[i][1]);
+			if (kleepumatuteine && paarmassiiviteises(paarid1[i][0], paarid1[i][1], paarid2, esimesipaare))	// kui paar i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudteised[kleepumatuidteisi][0] = paarid1[i][0];
+				kleepumatudteised[kleepumatuidteisi][1] = paarid1[i][1];
+				kleepija(vektorids6nedena[paarid1[i][0]], vektorids6nedena[paarid1[i][1]], kleebe);
+				kleepumatuds6nedena2[kleepumatuidteisi][0] = kleebe[0];
+				kleepumatuds6nedena2[kleepumatuidteisi][1] = kleebe[1];
+				kleepumatuds6nedena2[kleepumatuidteisi][2] = kleebe[2];
+				kleepumatuds6nedena2[kleepumatuidteisi][3] = kleebe[3];
+				//printf("kleepumatud teised: %d-%d\n", kleepumatudteised[kleepumatuidteisi][0], kleepumatudteised[kleepumatuidteisi][1]);
+				kleepumatuidteisi++;
+			}
+		}
+		/*
+		printf("\nTeised paarid:\n");
+		for (int i = 0; i < teisipaare; i++)
+		{
+			printf("%d-%d\t;\t%d-%d\t\t\t\t", paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena2[i][j]);
+			}
+			printf("\n");
+		}
+		printf("Teised kleepumatud (%d tk.):\n", kleepumatuidteisi);
+		for (int i = 0; i < kleepumatuidteisi; i++)
+		{
+			printf("%d-%d\t\t\t\t", kleepumatudteised[i][0], kleepumatudteised[i][1]);
+			printf("\n");
+		}
+		*/
+		for (int i = 0; i < teisipaare - 1; i++)	// kolmas kleepimine
+		{
+			for (int j = i + 1; j < teisipaare; j++)
+			{
+				//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
+				//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
+				if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
+				{
+					paarid3[kolmandaidpaare][0] = paarid2[i][0];
+					paarid3[kolmandaidpaare][1] = paarid2[i][1];
+					paarid3[kolmandaidpaare][2] = paarid2[i][2];
+					paarid3[kolmandaidpaare][3] = paarid2[i][3];
+					paarid3[kolmandaidpaare][4] = paarid2[j][0];
+					paarid3[kolmandaidpaare][5] = paarid2[j][1];
+					paarid3[kolmandaidpaare][6] = paarid2[j][2];
+					paarid3[kolmandaidpaare][7] = paarid2[j][3];
+					/*
+					kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
+					kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
+					kleepija(kleebe, kleebe2, kleebe3);
+					kleepija(vektorids6nedena[paarid2[j][0]], vektorids6nedena[paarid2[j][1]], kleebe4);
+					kleepija(vektorids6nedena[paarid2[j][2]], vektorids6nedena[paarid2[j][3]], kleebe5);
+					kleepija(kleebe4, kleebe5, kleebe6);
+					kleepija(kleebe3, kleebe6, kleebe7);
+					*/
+					for (int h = 0; h < 4; h++)
+					{
+						paarids6nedena3[kolmandaidpaare][h] = kleebe[h];
+					}
+					kolmandaidpaare++;
+				}
+			}
+		}
+		for (int i = 0; i < teisipaare; i++)	// kolmandate kleepumatute otsimine
+		{
+			kleepumatukolmas = 1;
+			for (int j = i + 1; j < teisipaare; j++)
+			{
+				//printf("Paar1: %c%c%c%c Paar2: %c%c%c%c\n", paarids6nedena2[i][0], paarids6nedena2[i][1], paarids6nedena2[i][2], paarids6nedena2[i][3], paarids6nedena2[j][0], paarids6nedena2[j][1], paarids6nedena2[j][2], paarids6nedena2[j][3]);
+				//printf("%d\n", kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe));
+				if (kleepija(paarids6nedena2[i], paarids6nedena2[j], kleebe) == 0)
+				{
+					kleepumatukolmas = 0;
+				}
+			}
+			if (kleepumatukolmas && nelikmassiiviteises(paarid2[i][0], paarid2[i][1], paarid2[i][2], paarid2[i][3], paarid3, teisipaare))	// kui nelik i ei kleepunud yhegi teisega, siis loeme ta lihtimplikandiks
+			{
+				kleepumatudkolmandad[kleepumatuidkolmandaid][0] = paarid2[i][0];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][1] = paarid2[i][1];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][2] = paarid2[i][2];
+				kleepumatudkolmandad[kleepumatuidkolmandaid][3] = paarid2[i][3];
+				kleepija(vektorids6nedena[paarid2[i][0]], vektorids6nedena[paarid2[i][1]], kleebe);
+				kleepija(vektorids6nedena[paarid2[i][2]], vektorids6nedena[paarid2[i][3]], kleebe2);
+				kleepija(kleebe, kleebe2, kleebe3);
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][0] = kleebe3[0];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][1] = kleebe3[1];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][2] = kleebe3[2];
+				kleepumatuds6nedena3[kleepumatuidkolmandaid][3] = kleebe3[3];
+				//printf("kleepumatud kolmandad: %d-%d-%d-%d\n", kleepumatudkolmandad[kleepumatuidkolmandaid][0], kleepumatudkolmandad[kleepumatuidkolmandaid][1], kleepumatudkolmandad[kleepumatuidkolmandaid][2], kleepumatudkolmandad[kleepumatuidkolmandaid][3]);
+				kleepumatuidkolmandaid++;
+			}
+		}
+		/*
+		printf("\nKolmandad paarid: \n");
+		for (int i = 0; i < kolmandaidpaare; i++)
+		{
+			printf("%d-%d-%d-%d   \t;\t%d-%d-%d-%d\t\t", paarid3[i][0], paarid3[i][1], paarid3[i][2], paarid3[i][3], paarid3[i][4], paarid3[i][5], paarid3[i][6], paarid3[i][7]);
+			for (int j = 0; j < 4; j++)
+			{
+				printf("%c", paarids6nedena3[i][j]);
+			}
+			printf("\n");
+		}
+		printf("Kolmandad kleepumatud: (%d tk.)\n", kleepumatuidkolmandaid);
+		for (int i = 0; i < kleepumatuidkolmandaid; i++)
+		{
+			printf("%d-%d-%d-%d\n", kleepumatudkolmandad[i][0], kleepumatudkolmandad[i][1], kleepumatudkolmandad[i][2], kleepumatudkolmandad[i][3]);
+		}
+		printf("\n");
+		*/
+		// ########### MDNK LIHTIMPLIKANDID ###########
+		rangevektor = 0;
+		implikantepuhvris = 0;
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			kleepumatuds6nedena1[i][0] = vektorids6nedena[kleepumatudesimesed[i]][0];
+			kleepumatuds6nedena1[i][1] = vektorids6nedena[kleepumatudesimesed[i]][1];
+			kleepumatuds6nedena1[i][2] = vektorids6nedena[kleepumatudesimesed[i]][2];
+			kleepumatuds6nedena1[i][3] = vektorids6nedena[kleepumatudesimesed[i]][3];
+			//printf("%c%c%c%c\n", kleepumatuds6nedena1[i][0], kleepumatuds6nedena1[i][1], kleepumatuds6nedena1[i][2], kleepumatuds6nedena1[i][3]);
+		}
+		for (int i = 0; i < kleepumatuidesimesi; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena1[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena1[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena1[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena1[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3]);
+		}
+		for (int i = 0; i < kleepumatuidteisi; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena2[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena2[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena2[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena2[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		for (int i = 0; i < kleepumatuidkolmandaid; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = kleepumatuds6nedena3[i][0];
+			implikandipuhver[implikantepuhvris][1] = kleepumatuds6nedena3[i][1];
+			implikandipuhver[implikantepuhvris][2] = kleepumatuds6nedena3[i][2];
+			implikandipuhver[implikantepuhvris][3] = kleepumatuds6nedena3[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		for (int i = 0; i < kolmandaidpaare; i++)
+		{
+			implikandipuhver[implikantepuhvris][0] = paarids6nedena3[i][0];
+			implikandipuhver[implikantepuhvris][1] = paarids6nedena3[i][1];
+			implikandipuhver[implikantepuhvris][2] = paarids6nedena3[i][2];
+			implikandipuhver[implikantepuhvris][3] = paarids6nedena3[i][3];
+			implikantepuhvris++;
+			//printf("%c%c%c%c\n", implikandipuhver[implikantepuhvris-1][0], implikandipuhver[implikantepuhvris-1][1], implikandipuhver[implikantepuhvris-1][2], implikandipuhver[implikantepuhvris-1][3]);
+		}
+		lihtimplikante = 0;
+		kordumatu = 1;
+		for (int i = 0; i < implikantepuhvris; i++)
+		{
+			kordumatu = 1;
+			for (int j = 0; j < lihtimplikante; j++)
+			{
+				//printf("%c%c%c%c|||%c%c%c%c|||\n", implikandipuhver[i][0], implikandipuhver[i][1], implikandipuhver[i][2], implikandipuhver[i][3], lihtimplikandid[lihtimplikante-1][0], lihtimplikandid[lihtimplikante-1][1], lihtimplikandid[lihtimplikante-1][2], lihtimplikandid[lihtimplikante-1][3]);
+				if(implikandipuhver[i][0] == lihtimplikandid[j][0] && implikandipuhver[i][1] == lihtimplikandid[j][1] && implikandipuhver[i][2] == lihtimplikandid[j][2] && implikandipuhver[i][3] == lihtimplikandid[j][3])
+				{
+					//printf("korduv\n");
+					kordumatu = 0;
+				}
+			}
+			if (kordumatu)
+			{
+				lihtimplikandid[lihtimplikante][0] = implikandipuhver[i][0];
+				lihtimplikandid[lihtimplikante][1] = implikandipuhver[i][1];
+				lihtimplikandid[lihtimplikante][2] = implikandipuhver[i][2];
+				lihtimplikandid[lihtimplikante][3] = implikandipuhver[i][3];
+				//printf("%c%c%c%c\n", lihtimplikandid[lihtimplikante][0], lihtimplikandid[lihtimplikante][1], lihtimplikandid[lihtimplikante][2], lihtimplikandid[lihtimplikante][3]);
+				lihtimplikante++;
+			}
+		}
+		/*
+		for (int i = 0; i < lihtimplikante; i++)
+		{
+			printf("%c%c%c%c\n", lihtimplikandid[i][0], lihtimplikandid[i][1], lihtimplikandid[i][2], lihtimplikandid[i][3]);
+		}
+		*/
+		// ########### MDNK MINIMAALNE RANGE KATE ###########
+		ei = 1;
+		t2is = 0;
+		elemente = 0;
+		for (int i = 0; i < lihtimplikante; i++)
+		{
+			t2is = 0;
+			for (int j = 0; j < rangenulsuurus; j++)
+			{
+				ei = 1;
+				for (int k = 0; k < 4; k++)
+				{
+					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
+					if (lihtimplikandid[i][k] != '-' && lihtimplikandid[i][k] != vektorids6nedena[rangenullidepiirkond[j]][k])
+					{
+						//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
+						ei = 0;
+					}
+				}
+				if (ei)
+				{
+					t2is++;
+				}
+			}
+			if (t2is)
+			{
+				katvad[elemente] = i;
+				//printf("t2is (%d)\n", i);
+				elemente++;
+			}
+		}
+		rangeidlihtimplikante = elemente;
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			rangedlihtimplikandid[i][0] = lihtimplikandid[katvad[i]][0];
+			rangedlihtimplikandid[i][1] = lihtimplikandid[katvad[i]][1];
+			rangedlihtimplikandid[i][2] = lihtimplikandid[katvad[i]][2];
+			rangedlihtimplikandid[i][3] = lihtimplikandid[katvad[i]][3];
+		}
+		printf("\nKLEEBITUD NULLID VEKTORKUJUL (%d tk.) JA RANGE KATE: \n\n", lihtimplikante);
+		printf("Nullide; 1-pk\t");
+		for (int i = 0; i < rangenulsuurus; i++)
+		{
+			printf("%d\t", rangenullidepiirkond[i]);
+		}
+		int maatriks2[rangeidlihtimplikante][rangenulsuurus];
+		printf("\n");
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			printf("%c%c%c%c\t\t", rangedlihtimplikandid[i][0], rangedlihtimplikandid[i][1], rangedlihtimplikandid[i][2], rangedlihtimplikandid[i][3]);
+			for (int j = 0; j < rangenulsuurus; j++)
+			{
+				ei = 1;
+				for (int k = 0; k < 4; k++)
+				{
+					//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[i]][k]);
+					if (rangedlihtimplikandid[i][k] != '-' && rangedlihtimplikandid[i][k] != vektorids6nedena[rangenullidepiirkond[j]][k])
+					{
+						//printf("%c;%c",lihtimplikandid[i][k], vektorids6nedena[rangeyhtedepiirkond[j]][k]);
+						ei = 0;
+					}
+				}
+				if (ei)
+				{
+					printf("X\t");
+					maatriks2[i][j] = 1;
+				}
+				else
+				{
+					printf("\t");
+					maatriks2[i][j] = 0;
+				}
+			}
+			printf("\n");
+			printf("-----------");
+			for (int z = 0; z < rangenulsuurus; z++)
+			{
+				printf("--------");
+			}
+			printf("\n");
+		}
+		// minimaalse range katte otsimine maatriksi abil
+		kaetud = 0;
+		katteid = 0;
+		valituid = 0;
+		viimanekatja = 0;
+		korduvimplikant = 0;
+		valitud[rangeidlihtimplikante];
+		for (int i = 0; i < rangenulsuurus; i++)
+		{
+			katteid = 0;
+			for (int j = 0; j < rangeidlihtimplikante; j++)
+			{
+				if (maatriks2[j][i] == 1)
+				{
+					katteid++;
+					viimanekatja = j;
+				}
+			}
+			if (katteid == 1)	// valime kindlalt lihtimplikandi, mis on mingi vektori korral ainsaks katjaks
+			{
+				korduvimplikant = 0;
+				for (int k = 0; k < valituid; k++)
+				{
+					if (valitud[k] == viimanekatja)
+					{
+						korduvimplikant = 1;
+					}
+				}
+				if (!korduvimplikant)
+				{
+					valitud[valituid] = viimanekatja;
+					valituid++;
+				}
+			}
+		}
+		//printf("V2ltimatult valitud: ");
+		printf("Kleebe:kattem22r\n");
+		/*
+		for (int i = 0; i < valituid; i++)
+		{
+			if (i == valituid - 1)
+			{
+				printf("%d\n", valitud[i]);
+			}
+			else
+			{
+				printf("%d, ", valitud[i]);
+			}
+		}
+		if (valituid == 0)
+		{
+			printf("-\n");
+		}
+		*/
+		katteid = 0;
+		suurimaidkatteid = 0;
+		suurimvalimata = 0;
+		rangekattuvus = 0;
+		int implikandidkattuvusega2[rangeidlihtimplikante][2];	// esimene element on implikandi indeks, teine element n2itab kui palju vastav lihtimplikant katab
+		katab = 0;
+		for (int i = 0; i < rangeidlihtimplikante; i++)	// t2idame massivi implikantide indekside ja vastavate kattuvust iseloomustavate suurustega
+		{
+			katteid = 0;
+			for (int j = 0; j < rangenulsuurus; j++)
+			{
+				if (maatriks2[i][j] == 1)
+				{
+					katteid++;
+				}
+				implikandidkattuvusega2[i][0] = i;					// implikandi indeks
+				implikandidkattuvusega2[i][1] = katteid;		// implikandi kattuvus
+			}
+		}
+		for (int i = 1; i < rangeidlihtimplikante; i++)	// sorteerime t2idetud massivi kattuvuses kasvavas j2rjekorras
+		{
+			for (int j = 0; j < rangeidlihtimplikante - i; j++)
+			{
+				if (implikandidkattuvusega2[j][1] > implikandidkattuvusega2[j+1][1])
+				{
+					puhver[0] = implikandidkattuvusega2[j][0];
+					puhver[1] = implikandidkattuvusega2[j][1];
+					implikandidkattuvusega2[j][0] = implikandidkattuvusega2[j+1][0];
+					implikandidkattuvusega2[j][1] = implikandidkattuvusega2[j+1][1];
+					implikandidkattuvusega2[j+1][0] = puhver[0];
+					implikandidkattuvusega2[j+1][1] = puhver[1];
+				}
+			}
+		}
+		for (int i = 0; i < rangeidlihtimplikante; i++)
+		{
+			printf("%d:%d\t", implikandidkattuvusega2[i][0], implikandidkattuvusega2[i][1]);
+		}
+		d = rangeidlihtimplikante - 1;
+		rist = 0;
+		kattuvusm22r = 0;
+		printf("\n");
+		while(!kaetud)	// lisame k6ige rohkem katvaid implikante seni, kuni kogu range 1-piirkond saab kaetud
+		{
+			kordub = 0;
+			//printf("dektrementeerimata d: %d\n", d);
+			for (int i = 0; i < valituid; i++)
+			{
+				//printf("valitud vs v6rreldav %d:%d\n", valitud[i], implikandidkattuvusega[d][0]);
+				if (implikandidkattuvusega2[d][0] == valitud[i])
+				{
+					//printf("-\n");
+					kordub = 1;
+				}
+			}
+			if (!kordub)
+			{
+				//printf("+\n");
+				valitud[valituid] = implikandidkattuvusega2[d][0];
+				valituid++;
+			}
+			kattuvusm22r = 0;
+			for (int i = 0; i < rangenulsuurus; i++)
+			{
+				rist = 0;
+				for (int j = 0; j < valituid; j++)
+				{
+					if (maatriks2[valitud[j]][i] == 1)
+					{
+						rist = 1;
+					}
+				}
+				if (rist)
+				{
+					kattuvusm22r++;
+				}
+			}
+			//printf("kattuvusm22r: %d\n", kattuvusm22r);
+			if (kattuvusm22r == rangenulsuurus)
+			{
+				kaetud = 1;
+			}
+			d--;
+			//printf("dektrementeeritud d: %d\n", d);
+		}
+
+		int loend = 0, loendur = 0;
+		printf("MKNK (¬ on j2rgneva muutuja ivnersioon): \n");
+		for (int i = 0; i < valituid; i++)
+		{
+			loend = 0;
+			loendur = 0;
+			printf("(");
+			fprintf(MKNK, "(");
+			for (int j = 0; j < 4; j++)
+			{
+				if (rangedlihtimplikandid[valitud[i]][j] == '0' || rangedlihtimplikandid[valitud[i]][j] == '1')
+				{
+					loend++;
+				}
+			}
+			for (int j = 0; j < 4; j++)
+			{
+				if (rangedlihtimplikandid[valitud[i]][j] == '0')
+				{
+					printf("x%d", j + 1);
+					fprintf(MKNK, "x%d", j + 1);
+					loendur++;
+					if (loendur < loend)
+					{
+						printf(" v ");
+						fprintf(MKNK, " v ");
+					}
+				}
+				if (rangedlihtimplikandid[valitud[i]][j] == '1')
+				{
+					printf("¬x%d", j + 1);
+					fprintf(MKNK, "¬x%d", j + 1);
+					loendur++;
+					if (loendur < loend)
+					{
+						printf(" v ");
+						fprintf(MKNK, " v ");
+					}
+				}
+			}
+			printf(")");
+			fprintf(MKNK, ")");
+		}
+		printf("\nMINIMEERITUD KONJUNKTIIVNE NORMAALKUJU EDUKALT FAILI SALVESTATUD!\n");
+	}
 	return 0;
 }
