@@ -11,7 +11,7 @@ int s6nearvuks(char string[], int pikkus, int tudengikood)
 				error = 1;
 			}
 			j++;
-			if (j <= pikkus)
+			if (j <= 5)
 			{
 				arv += (string[i] - 48)*kaal;
 			}
@@ -40,90 +40,6 @@ int sisestus(int len, char argv[], int *pViisViimast, int * pkonstant)
 		printf("'\n");
 		return 1;
 	}
-	/*
-	if (argc == 1)
-	{
-		do
-		{
-			printf("Sisestage matrikli number ILMA 6ppekava t2iendita\n(nt. matrikli 211234IACB korral ainult 211234): ");
-			scanf("%s", teststring);
-			*pViisViimast = s6nearvuks(teststring, 5, 1);
-		}
-		while (s6nearvuks(teststring, strlen(teststring), 1) == 1);
-	}
-	if (argc == 2)
-	{
-		if (strlen(argv[1]) == 1)
-		{
-			if (s6nearvuks(argv[1], 1, 0) > 9 || s6nearvuks(argv[1], 1, 0) < 2)
-			{
-				printf("Sobimatu parameeter!\n");
-				return 1;
-			}
-			*pkonstant = s6nearvuks(argv[1], 1, 0);
-			do
-			{
-				printf("Sisestage matrikli number ILMA 6ppekava t2iendita\n(nt. matrikli 211234IACB korral ainult 211234): ");
-				scanf("%s", teststring);
-				*pViisViimast = s6nearvuks(teststring, 5, 1);
-				if (*pViisViimast == 1)
-				{
-					printf("Sobimatu sisend!\n");
-				}
-			}
-			while (s6nearvuks(teststring, strlen(teststring), 1) == 1);
-		}
-		else if (strlen(argv[1]) >= 5)
-		{
-			if (s6nearvuks(argv[1], 5, 1) == 1)
-			{
-				printf("Sobimatu parameeter!\n");
-				return 1;
-			}
-			else
-			{
-				*pViisViimast = s6nearvuks(argv[1], 5, 1);
-			}
-		}
-		else if (strlen(argv[1]) < 5)
-		{
-			printf("Sobimatu parameeter!\n");
-			return 1;
-		}
-	}
-	if (argc > 2)
-	{
-		int konstantleitud = 0, matrikkelleitud = 0;
-		for (int i = 1; i < 3; i++)
-		{
-			if ((strlen(argv[i]) > 1 && strlen(argv[i]) < 5) || (strlen(argv[i]) == 1 && konstantleitud == 1) || (strlen(argv[i]) >= 5 && matrikkelleitud == 1))
-			{
-				printf("Sobimatu parameeter!\n");
-				return 1;
-			}
-			if (strlen(argv[i]) == 1)
-			{
-				konstantleitud = 1;
-				if (s6nearvuks(argv[i], 1, 0) > 9 || s6nearvuks(argv[i], 1, 0) < 2)
-				{
-					printf("Sobimatu parameeter!\n");
-					return 1;
-				}
-				*pkonstant = s6nearvuks(argv[i], 1, 0);
-			}
-			if (strlen(argv[i]) >= 5)
-			{
-				matrikkelleitud = 1;
-				*pViisViimast = s6nearvuks(argv[i], 5, 1);
-				if (s6nearvuks(argv[i], 5, 1) == 1)
-				{
-					printf("Sobimatu parameeter!\n");
-					return 1;
-				}
-			}
-		}
-	}
-	*/
 	return 0;
 }
 
@@ -208,10 +124,12 @@ int valjastus()
 		printf("Vektor 10ndkujul: %d\t Funktsiooni v22rtus: %c\n", vektorid[i], v22rtused[i]);
 	}
 	fclose(F);
+	/*
 	printf("\nFunktsioon esitatud Karnaugh' kaardina:\n\n\t");
 	printf("    |\tx3x4\n\t    |\t00\t01\t11\t10\n\t---------------------------------------");
 	printf("\n\t    |\t    |\t    |\t    |\t    |\n");
 	printf("  x1x2\t00  |");
+	*/
 	i = 0;
 	char v22rtus;
 	for (i = 0; i < 8; i++)
@@ -228,15 +146,15 @@ int valjastus()
 		{
 			v22rtus = v22rtused[i];
 		}
-		printf("\t%c   |", v22rtus);
+		//printf("\t%c   |", v22rtus);
 		if (i == 3)
 		{
-			printf("\n\t    |\t    |\t    |\t    |\t    |\n");
-			printf("\t01  |");
+		//	printf("\n\t    |\t    |\t    |\t    |\t    |\n");
+		//	printf("\t01  |");
 		}
 	}
-	printf("\n\t    |\t    |\t    |\t    |\t    |\n");
-	printf("\t11  |");
+	//printf("\n\t    |\t    |\t    |\t    |\t    |\n");
+	//printf("\t11  |");
 	i = 12;
 	for (i = 12; i < 16; i++)
 	{
@@ -252,11 +170,11 @@ int valjastus()
 		{
 			v22rtus = v22rtused[i];
 		}
-		printf("\t%c   |", v22rtus);
+		//printf("\t%c   |", v22rtus);
 	}
 	i = 8;
-	printf("\n\t    |\t    |\t    |\t    |\t    |\n");
-	printf("\t10  |");
+	//printf("\n\t    |\t    |\t    |\t    |\t    |\n");
+	//printf("\t10  |");
 	for (i = 8; i < 12; i++)
 	{
 		if (i == 10)
@@ -271,10 +189,10 @@ int valjastus()
 		{
 			v22rtus = v22rtused[i];
 		}
-		printf("\t%c   |", v22rtus);
+		//printf("\t%c   |", v22rtus);
 	}
-	printf("\n\t    |\t    |\t    |\t    |\t    |\n");
-	printf("\t---------------------------------------\n");
+	//printf("\n\t    |\t    |\t    |\t    |\t    |\n");
+	//printf("\t---------------------------------------\n");
 	return 0;
 }
 
@@ -1517,6 +1435,7 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 
 int GenjaMin(int len, char argv[])
 {
+	FILE * LOGI = fopen("logifail.txt", "w");
 	int ViisViimast, *pViisViimast = &ViisViimast, konstant = 7, *pkonstant = &konstant;
 	if (sisestus(len, argv, pViisViimast, pkonstant))
 	{
@@ -1524,8 +1443,7 @@ int GenjaMin(int len, char argv[])
 	}
 	printf("Viieks viimaseks numbriks loeti: %d\n", ViisViimast);
 	printf("Teguriks loeti: %d\n", konstant);
-	FILE * F;
-	F = fopen("t6ev22rtustabel.txt", "w");
+	FILE * F = fopen("t6ev22rtustabel.txt", "w");
 	tootlus(ViisViimast, konstant, F);
 	fclose(F);
 	FILE * MDNK, * MKNK;
@@ -1544,5 +1462,6 @@ int GenjaMin(int len, char argv[])
 	}
 	fclose(MDNK);
 	fclose(MKNK);
+	fclose(LOGI);
 	return 0;
 }

@@ -26,9 +26,14 @@ static void nupuvajutus(GtkWidget *widget, gpointer data)
 		aadress++;
 	}
 	staatus = GenjaMin(l, g_sisend);
+	if (staatus == 1)
+	{
+		gtk_frame_set_label(GTK_FRAME(teade2), "MDNK ja MKNK puuduvad!");
+	}
 	if (staatus != 1)	// uuendada kasutajaliidese t6ev22rtustabelit ainult siis kui funktsioon GenjaMin too edukalt l6petab
 	{
 		gtk_frame_set_label(GTK_FRAME(teade1), "Genereeritud!");
+		gtk_frame_set_label(GTK_FRAME(teade2), "Minimeeritud!");
 		FILE *TVTABEL = fopen("t6ev22rtustabel.txt", "r");
 		for (int i = 0; i < 16; i++)
 		{
@@ -187,7 +192,7 @@ int main(int argc, char * argv[])
 	teade1 = gtk_frame_new(NULL);
 	gtk_frame_set_label(GTK_FRAME(teade1), "Ootel...");
 	teade2 = gtk_frame_new(NULL);
-	gtk_frame_set_label(GTK_FRAME(teade2), "f(x\342\202\201...x\342\202\204)=\316\243()\342\202\201()\342\202\213");
+	gtk_frame_set_label(GTK_FRAME(teade2), "Ootel...");
 	markeering1 = gtk_frame_new(NULL);
 	gtk_frame_set_label(GTK_FRAME(markeering1), "\t\t\t\tx\342\202\201x\342\202\202  00");
 	markeering3 = gtk_frame_new(NULL);
@@ -205,8 +210,8 @@ int main(int argc, char * argv[])
 	markeering9 = gtk_frame_new(NULL);
 	gtk_frame_set_label(GTK_FRAME(markeering9), "\t\t\t\t\t10\t");
 	//gtk_frame_set_label_align(lahter1, 0.5);
-	gtk_widget_set_size_request(lahter, 300, 60);	// lahtri suuruse m22ramine
-	gtk_widget_set_size_request(teade1, 300, 60);	//
+	gtk_widget_set_size_request(lahter, 400, 60);	// lahtri suuruse m22ramine
+	gtk_widget_set_size_request(teade1, 300, 60);
 	gtk_widget_set_size_request(lahter1, 60, 60);
 	gtk_widget_set_size_request(lahter5, 60, 60);
 	gtk_widget_set_size_request(lahter9, 60, 60);
