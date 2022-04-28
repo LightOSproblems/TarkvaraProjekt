@@ -37,6 +37,10 @@ int sisestus(int argc, char * argv[], int *pViisViimast, int * pkonstant)
 			printf("Sisestage matrikli number ILMA 6ppekava t2iendita\n(nt. matrikli 211234IACB korral ainult 211234): ");
 			scanf("%s", teststring);
 			*pViisViimast = s6nearvuks(teststring, 5, 1);
+			if (*pViisViimast == 1)
+			{
+				printf("Sobimatu sisend!\n");
+			}
 		}
 		while (s6nearvuks(teststring, strlen(teststring), 1) == 1);
 	}
