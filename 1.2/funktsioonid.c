@@ -934,7 +934,7 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 			//printf("dektrementeeritud d: %d\n", d);
 		}
 
-		printf("MDNK (¬ on j2rgneva muutuja ivnersioon): \n");
+		printf("MDNK (¬ on j2rgneva muutuja inversioon): \n");
 		for (int i = 0; i < valituid; i++)
 		{
 			for (int j = 0; j < 4; j++)
@@ -1460,7 +1460,7 @@ int mccluskey(FILE * MDNK, FILE * MKNK)
 		}
 
 		int loend = 0, loendur = 0;
-		printf("MKNK (¬ on j2rgneva muutuja ivnersioon): \n");
+		printf("MKNK (¬ on j2rgneva muutuja inversioon): \n");
 		for (int i = 0; i < valituid; i++)
 		{
 			loend = 0;
